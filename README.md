@@ -81,6 +81,14 @@ directly from the Home Assistant UI, and exposes rotation and press as
         entity_id: light.living_room
 ```
 
+## Device triggers
+
+In the automation editor you can also pick the knob under **Device** and
+choose one of its built-in triggers — *Knob rotated left*, *Knob rotated
+right* or *Knob pressed* — without touching YAML or the event entities.
+These fire from the same `ble_knob_event` and are scoped to the
+individual knob, so multiple knobs never cross-fire.
+
 ## Custom keycodes
 
 If you've remapped the knob in the Anticater desktop app, open the

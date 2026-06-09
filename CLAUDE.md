@@ -131,9 +131,13 @@ Manual smoke test on real hardware (the actual acceptance test):
 
 ## Known weak points (check these first when debugging)
 
-- **Pairing agent**: `Device1.Pair()` assumes "Just Works" pairing. If a
-  device demands passkey confirmation, BlueZ needs a registered agent
-  (org.bluez.Agent1) — not implemented. Symptom: Pair() timeout.
+- **Pairing agent**: `bluez.py` registers a `NoInputNoOutput`
+  `org.bluez.Agent1` on the pairing connection so BlueZ can authenticate
+  the device — without it `Pair()` fails with *Authentication Failed*.
+  This handles "Just Works" pairing only; a device that demands an
+  out-of-band passkey or a PIN typed on a keypad still can't pair (the
+  agent returns defaults rather than prompting). Symptom if it regresses:
+  Pair() returns *Authentication Failed* / *Page Timeout*.
 - **`uniq` field**: some kernels/drivers leave `dev.uniq` empty for BLE
   HID devices. Fallback strategy if hit: match on `dev.name` +
   phys/bus type, or read the MAC from sysfs.

@@ -15,9 +15,18 @@ jobs:
       - uses: home-assistant/actions/hassfest@master
 
   hacs:
+    # HACS validation reads repository content from the default branch via the
+    # GitHub API, so it cannot validate feature branches meaningfully.
     runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.ref_name == github.event.repository.default_branch
     steps:
       - uses: actions/checkout@v4
       - uses: hacs/action@main
         with:
           category: integration
+          # description and topics are repository settings; remove these
+          # ignores once they are set in the GitHub repo settings.
+          ignore: description topics

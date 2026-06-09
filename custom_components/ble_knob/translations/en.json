@@ -32,5 +32,12 @@
         }
       }
     }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "rotate_left": "Knob rotated left",
+      "rotate_right": "Knob rotated right",
+      "press": "Knob pressed"
+    }
   }
 }

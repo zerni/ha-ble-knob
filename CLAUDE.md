@@ -51,6 +51,7 @@ HA Bluetooth integration sees HID advertisement (service UUID 1812)
 | `bluez.py` | All D-Bus/BlueZ interaction: pair, trust, connect, is_paired, remove |
 | `config_flow.py` | Discovery (bluetooth + manual), pairing step, options flow (keymap) |
 | `event.py` | The two `EventEntity` classes, availability via dispatcher |
+| `device_trigger.py` | Device automation triggers (rotate_left/right, press), delegating to the `ble_knob_event` bus event |
 | `const.py` | Domain, conf keys, default keycodes, signal templates |
 | `manifest.json` | Bluetooth matcher (`service_uuid` 1812), requirement `evdev` |
 | `strings.json` / `translations/en.json` | Flow UI text — keep these two files identical |

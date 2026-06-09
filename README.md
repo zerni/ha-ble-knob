@@ -55,43 +55,78 @@ directly from the Home Assistant UI, and exposes rotation and press as
    Integration → *BLE Knob* and pick it from the list.
 4. Confirm pairing. Done.
 
-## Example automation: dim Hue lights
+## Example automation: one light, every gesture
+
+This single automation uses all three layers of the knob on one light:
+
+- **Press** → toggle on/off
+- **Turn** → dim up (right) / down (left)
+- **Press and turn** → colour temperature colder (right) / warmer (left)
 
 ```yaml
-- alias: Knob dims living room
+- alias: Knob controls living room light
   triggers:
     - trigger: state
-      entity_id: event.vk01_rotation
+      entity_id:
+        - event.vk01_rotation
+        - event.vk01_button
+  variables:
+    light: light.living_room
+    event_type: "{{ trigger.to_state.attributes.event_type }}"
   actions:
     - choose:
-        - conditions: >
-            {{ trigger.to_state.attributes.event_type == 'rotate_right' }}
+        # Press toggles the light on/off
+        - conditions: "{{ event_type == 'press' }}"
+          sequence:
+            - action: light.toggle
+              target:
+                entity_id: "{{ light }}"
+
+        # Turn right/left dims up/down
+        - conditions: "{{ event_type == 'rotate_right' }}"
           sequence:
             - action: light.turn_on
               target:
-                entity_id: light.living_room
+                entity_id: "{{ light }}"
               data:
                 brightness_step_pct: 10
                 transition: 0.3
-        - conditions: >
-            {{ trigger.to_state.attributes.event_type == 'rotate_left' }}
+        - conditions: "{{ event_type == 'rotate_left' }}"
           sequence:
             - action: light.turn_on
               target:
-                entity_id: light.living_room
+                entity_id: "{{ light }}"
               data:
                 brightness_step_pct: -10
                 transition: 0.3
 
-- alias: Knob press toggles living room
-  triggers:
-    - trigger: state
-      entity_id: event.vk01_button
-  actions:
-    - action: light.toggle
-      target:
-        entity_id: light.living_room
+        # Press and turn shifts colour temperature colder/warmer.
+        # Higher kelvin = colder; clamped to the light's own range.
+        - conditions: "{{ event_type == 'rotate_right_pressed' }}"
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id: "{{ light }}"
+              data:
+                color_temp_kelvin: >
+                  {{ [ (state_attr(light, 'color_temp_kelvin') | int(4000)) + 400,
+                       state_attr(light, 'max_color_temp_kelvin') | int(6500) ] | min }}
+                transition: 0.3
+        - conditions: "{{ event_type == 'rotate_left_pressed' }}"
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id: "{{ light }}"
+              data:
+                color_temp_kelvin: >
+                  {{ [ (state_attr(light, 'color_temp_kelvin') | int(4000)) - 400,
+                       state_attr(light, 'min_color_temp_kelvin') | int(2200) ] | max }}
+                transition: 0.3
 ```
+
+Replace `event.vk01_rotation` / `event.vk01_button` with your knob's
+entity IDs and `light.living_room` with your light. A `long_press` event
+type is also available on the button entity if you want a fourth gesture.
 
 ## Device triggers
 

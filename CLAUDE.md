@@ -66,9 +66,14 @@ HA Bluetooth integration sees HID advertisement (service UUID 1812)
    classified on **release**: tap → `press`, held past
    `long_press_ms` → `long_press`, and a turn during the hold marks
    `_combo_consumed` so the release fires nothing (the turn already
-   emitted `rotate_*_pressed`). This assumes the knob keeps the button
-   *held down* while pressed; a momentary button that taps instantly
-   makes only `press`/`rotate_*` reachable.
+   emitted `rotate_*_pressed`).
+   The `rotate_*_pressed` actions have **two sources**: the VK01's
+   hardware press-and-turn layer sends dedicated keycodes (224/225,
+   configurable) that map straight to them; and as a fallback, a plain
+   rotate keycode arriving while our software button-held state is set
+   resolves to the same action. The real VK01 uses the former (it does
+   not send the button keycode during the combo), so the software path
+   only matters for knobs that keep the button held.
 2. **Device matched by `dev.uniq == MAC`**, not by `/dev/input/eventN`
    path or name. Event numbers shuffle across reconnects; names collide
    when running multiple identical knobs.

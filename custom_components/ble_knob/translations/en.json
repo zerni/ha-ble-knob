@@ -29,9 +29,13 @@
           "key_rotate_left": "Keycode: rotate left",
           "key_rotate_right": "Keycode: rotate right",
           "key_press": "Keycode: press",
+          "key_rotate_left_pressed": "Keycode: rotate left while pressed",
+          "key_rotate_right_pressed": "Keycode: rotate right while pressed",
           "long_press_ms": "Long-press threshold (ms)"
         },
         "data_description": {
+          "key_rotate_left_pressed": "Code the knob sends when you turn left while holding the button (VK01 default 224).",
+          "key_rotate_right_pressed": "Code the knob sends when you turn right while holding the button (VK01 default 225).",
           "long_press_ms": "How long the button must be held to count as a long press instead of a tap. Also the window in which turning the knob counts as a 'while pressed' gesture."
         }
       }

@@ -1,0 +1,6 @@
+# Development/test dependencies only — runtime deps live in manifest.json
+pytest
+pytest-asyncio
+pytest-homeassistant-custom-component
+evdev>=1.6.1
+ruff

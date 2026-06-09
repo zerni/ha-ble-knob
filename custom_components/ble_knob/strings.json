@@ -1,0 +1,36 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "confirm": {
+        "title": "Pair BLE knob",
+        "description": "Pair with {name} ({address})? Make sure the knob is awake and in Bluetooth pairing mode."
+      },
+      "user": {
+        "title": "Select a BLE HID device",
+        "description": "Devices currently advertising the Bluetooth HID service. Wake your knob and put it in pairing mode if it is not listed.",
+        "data": {
+          "mac": "Device"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This knob is already configured.",
+      "no_devices_found": "No BLE HID devices found. Wake the knob and put it in pairing mode, then try again.",
+      "pairing_failed": "Pairing failed. Wake the knob, make sure it is not connected to another host (phone/laptop), and try again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Key mapping",
+        "description": "Map Linux evdev keycodes to knob actions. Defaults match the VK01 factory firmware (115 = volume up, 114 = volume down, 113 = mute). If you remapped keys in the Anticater app, watch the ble_knob_event in Developer Tools → Events to read the codes being sent.",
+        "data": {
+          "key_rotate_left": "Keycode: rotate left",
+          "key_rotate_right": "Keycode: rotate right",
+          "key_press": "Keycode: press"
+        }
+      }
+    }
+  }
+}

@@ -58,9 +58,17 @@ HA Bluetooth integration sees HID advertisement (service UUID 1812)
 
 ## Key design decisions (do not silently reverse)
 
-1. **key_down only** (`event.value == 1`). Knob detents arrive as
-   down+up pairs; reacting to both would double every event. Long-press
-   support would mean handling value 2 (autorepeat) — see Backlog.
+1. **Rotation is key_down only** (`event.value == 1`). Knob detents
+   arrive as down+up pairs; reacting to both would double every event.
+   The **button**, by contrast, is tracked across its full down/up
+   lifecycle (`_handle_button`) so the gesture layer can tell a tap from
+   a hold and notice a turn made while it is held. The button is
+   classified on **release**: tap → `press`, held past
+   `long_press_ms` → `long_press`, and a turn during the hold marks
+   `_combo_consumed` so the release fires nothing (the turn already
+   emitted `rotate_*_pressed`). This assumes the knob keeps the button
+   *held down* while pressed; a momentary button that taps instantly
+   makes only `press`/`rotate_*` reachable.
 2. **Device matched by `dev.uniq == MAC`**, not by `/dev/input/eventN`
    path or name. Event numbers shuffle across reconnects; names collide
    when running multiple identical knobs.
@@ -150,10 +158,12 @@ Manual smoke test on real hardware (the actual acceptance test):
 ## Backlog (sensible next features, in rough order)
 
 1. GitHub Actions: hassfest + HACS validation workflows (see
-   `.github/workflows/validate.yml` if present).
+   `.github/workflows/validate.yml` if present). — **done**
 2. Test suite per the Testing section.
-3. Long-press: handle EV_KEY value 2 / hold duration, add `long_press`
-   event type to the button entity.
+3. ~~Long-press~~ — **done**: hold duration is measured in
+   `_handle_button`, exposing `long_press` plus the `rotate_*_pressed`
+   hold-and-turn gestures. A fire-at-threshold timer (so a long press
+   registers without waiting for release) is a possible refinement.
 4. Velocity: count detents per rolling window and attach a `speed`
    attribute to rotation events, enabling acceleration-style dimming.
 5. Configurable Bluetooth adapter (replace hardcoded `hci0`).

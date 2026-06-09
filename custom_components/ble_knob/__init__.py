@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 
 import evdev
 
@@ -13,17 +14,22 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .bluez import remove_device
 from .const import (
+    ACTION_LONG_PRESS,
     ACTION_PRESS,
     ACTION_ROTATE_LEFT,
+    ACTION_ROTATE_LEFT_PRESSED,
     ACTION_ROTATE_RIGHT,
+    ACTION_ROTATE_RIGHT_PRESSED,
     CONF_KEY_PRESS,
     CONF_KEY_ROTATE_LEFT,
     CONF_KEY_ROTATE_RIGHT,
+    CONF_LONG_PRESS_MS,
     CONF_MAC,
     CONF_NAME,
     DEFAULT_KEY_PRESS,
     DEFAULT_KEY_ROTATE_LEFT,
     DEFAULT_KEY_ROTATE_RIGHT,
+    DEFAULT_LONG_PRESS_MS,
     DOMAIN,
     EVENT_TYPE,
     SIGNAL_AVAILABILITY,
@@ -59,15 +65,20 @@ class KnobListener:
         self.mac: str = entry.data[CONF_MAC]
         self._task: asyncio.Task | None = None
         self._stopping = False
+        # Gesture state. `_button_down_at` is the monotonic time the
+        # button went down (None when released); `_combo_consumed` marks
+        # that a turn happened during the current hold, so the eventual
+        # release must not also fire a plain press/long press.
+        self._button_down_at: float | None = None
+        self._combo_consumed = False
 
     @property
-    def keymap(self) -> dict[int, str]:
-        opts = self.entry.options
-        return {
-            opts.get(CONF_KEY_ROTATE_LEFT, DEFAULT_KEY_ROTATE_LEFT): ACTION_ROTATE_LEFT,
-            opts.get(CONF_KEY_ROTATE_RIGHT, DEFAULT_KEY_ROTATE_RIGHT): ACTION_ROTATE_RIGHT,
-            opts.get(CONF_KEY_PRESS, DEFAULT_KEY_PRESS): ACTION_PRESS,
-        }
+    def _press_keycode(self) -> int:
+        return self.entry.options.get(CONF_KEY_PRESS, DEFAULT_KEY_PRESS)
+
+    @property
+    def _button_held(self) -> bool:
+        return self._button_down_at is not None
 
     def start(self) -> None:
         self._task = self.entry.async_create_background_task(
@@ -97,14 +108,15 @@ class KnobListener:
                 continue
 
             _LOGGER.info("Knob %s attached at %s", self.mac, dev.path)
+            # Drop any half-finished gesture from before a sleep/reconnect.
+            self._button_down_at = None
+            self._combo_consumed = False
             self._set_available(True)
             try:
                 async for event in dev.async_read_loop():
                     if event.type != evdev.ecodes.EV_KEY:
                         continue
-                    if event.value != 1:  # key_down only
-                        continue
-                    self._handle_keycode(event.code)
+                    self._handle_key_event(event.code, event.value)
             except (OSError, asyncio.CancelledError):
                 if self._stopping:
                     raise
@@ -116,8 +128,68 @@ class KnobListener:
                     pass
             self._set_available(False)
 
-    def _handle_keycode(self, keycode: int) -> None:
-        action = self.keymap.get(keycode)
+    def _handle_key_event(self, keycode: int, value: int) -> None:
+        """Route a raw evdev key event into a knob gesture.
+
+        The button is tracked across its full down/up lifecycle so we can
+        tell a tap from a hold and notice a turn made while it is held.
+        Rotations (and any unmapped key) fire on key_down only, matching
+        the down/up pairs the knob emits per detent.
+        """
+        opts = self.entry.options
+
+        if keycode == opts.get(CONF_KEY_PRESS, DEFAULT_KEY_PRESS):
+            self._handle_button(value)
+            return
+
+        if value != 1:  # rotation/unknown: key_down only
+            return
+
+        if keycode == opts.get(CONF_KEY_ROTATE_LEFT, DEFAULT_KEY_ROTATE_LEFT):
+            action = (
+                ACTION_ROTATE_LEFT_PRESSED if self._button_held else ACTION_ROTATE_LEFT
+            )
+        elif keycode == opts.get(CONF_KEY_ROTATE_RIGHT, DEFAULT_KEY_ROTATE_RIGHT):
+            action = (
+                ACTION_ROTATE_RIGHT_PRESSED if self._button_held else ACTION_ROTATE_RIGHT
+            )
+        else:
+            action = None  # unmapped keycode: still emitted for discovery
+
+        if self._button_held and action in (
+            ACTION_ROTATE_LEFT_PRESSED,
+            ACTION_ROTATE_RIGHT_PRESSED,
+        ):
+            # A turn during the hold: the upcoming release is part of this
+            # combo, not a separate press.
+            self._combo_consumed = True
+
+        self._emit(action, keycode)
+
+    def _handle_button(self, value: int) -> None:
+        """Classify the button on release: tap, long press, or combo."""
+        if value == 1:  # down
+            self._button_down_at = time.monotonic()
+            self._combo_consumed = False
+            return
+        if value != 0:  # autorepeat (2): still held, nothing to decide
+            return
+
+        # Released.
+        pressed_at = self._button_down_at
+        self._button_down_at = None
+        if pressed_at is None:
+            return  # release with no matching press (e.g. across reconnect)
+        if self._combo_consumed:
+            self._combo_consumed = False
+            return  # already expressed as a rotate-while-pressed gesture
+
+        held_ms = (time.monotonic() - pressed_at) * 1000
+        threshold = self.entry.options.get(CONF_LONG_PRESS_MS, DEFAULT_LONG_PRESS_MS)
+        action = ACTION_LONG_PRESS if held_ms >= threshold else ACTION_PRESS
+        self._emit(action, self._press_keycode)
+
+    def _emit(self, action: str | None, keycode: int) -> None:
         payload = {
             "entry_id": self.entry.entry_id,
             "mac": self.mac,

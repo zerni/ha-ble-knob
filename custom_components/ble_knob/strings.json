@@ -28,7 +28,11 @@
         "data": {
           "key_rotate_left": "Keycode: rotate left",
           "key_rotate_right": "Keycode: rotate right",
-          "key_press": "Keycode: press"
+          "key_press": "Keycode: press",
+          "long_press_ms": "Long-press threshold (ms)"
+        },
+        "data_description": {
+          "long_press_ms": "How long the button must be held to count as a long press instead of a tap. Also the window in which turning the knob counts as a 'while pressed' gesture."
         }
       }
     }
@@ -37,7 +41,10 @@
     "trigger_type": {
       "rotate_left": "Knob rotated left",
       "rotate_right": "Knob rotated right",
-      "press": "Knob pressed"
+      "press": "Knob pressed",
+      "long_press": "Knob pressed and held",
+      "rotate_left_pressed": "Knob rotated left while pressed",
+      "rotate_right_pressed": "Knob rotated right while pressed"
     }
   }
 }

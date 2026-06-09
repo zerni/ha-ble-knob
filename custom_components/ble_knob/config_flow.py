@@ -21,11 +21,13 @@ from .const import (
     CONF_KEY_PRESS,
     CONF_KEY_ROTATE_LEFT,
     CONF_KEY_ROTATE_RIGHT,
+    CONF_LONG_PRESS_MS,
     CONF_MAC,
     CONF_NAME,
     DEFAULT_KEY_PRESS,
     DEFAULT_KEY_ROTATE_LEFT,
     DEFAULT_KEY_ROTATE_RIGHT,
+    DEFAULT_LONG_PRESS_MS,
     DOMAIN,
     HID_SERVICE_UUID,
 )
@@ -132,6 +134,7 @@ class BleKnobConfigFlow(ConfigFlow, domain=DOMAIN):
                 CONF_KEY_ROTATE_LEFT: DEFAULT_KEY_ROTATE_LEFT,
                 CONF_KEY_ROTATE_RIGHT: DEFAULT_KEY_ROTATE_RIGHT,
                 CONF_KEY_PRESS: DEFAULT_KEY_PRESS,
+                CONF_LONG_PRESS_MS: DEFAULT_LONG_PRESS_MS,
             },
         )
 
@@ -175,6 +178,12 @@ class BleKnobOptionsFlow(OptionsFlow):
                         CONF_KEY_PRESS,
                         default=opts.get(CONF_KEY_PRESS, DEFAULT_KEY_PRESS),
                     ): vol.Coerce(int),
+                    vol.Required(
+                        CONF_LONG_PRESS_MS,
+                        default=opts.get(
+                            CONF_LONG_PRESS_MS, DEFAULT_LONG_PRESS_MS
+                        ),
+                    ): vol.All(vol.Coerce(int), vol.Range(min=100, max=5000)),
                 }
             ),
         )

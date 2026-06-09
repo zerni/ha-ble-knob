@@ -18,12 +18,22 @@ directly from the Home Assistant UI, and exposes rotation and press as
   device (matched by Bluetooth MAC) and survives the knob's sleep/wake
   cycles, rescanning every 5 seconds while it is away.
 - **Entities**: each knob gets a device with two event entities:
-  - `event.<knob>_rotation` (event types `rotate_left`, `rotate_right`)
-  - `event.<knob>_button` (event type `press`)
+  - `event.<knob>_rotation` (event types `rotate_left`, `rotate_right`,
+    `rotate_left_pressed`, `rotate_right_pressed`)
+  - `event.<knob>_button` (event types `press`, `long_press`)
+- **Gestures**: as well as a plain turn and tap, the integration
+  recognises **press-and-hold** (`long_press`) and **turn-while-holding**
+  the button (`rotate_left_pressed` / `rotate_right_pressed`), so one knob
+  drives two layers — e.g. turn to dim, hold-and-turn to set colour
+  temperature. The button is classified on release: a quick tap is a
+  `press`, a hold past the threshold is a `long_press`, and if you turn
+  while holding, the release is treated as part of that combo (no stray
+  `press` fires). The hold threshold is configurable (default 500 ms).
 - **Key mapping**: integration options let you remap the three evdev
-  keycodes if you've customised the knob in the Anticater app. Every raw
-  keypress is also fired on the bus as `ble_knob_event` (with `keycode`),
-  so you can discover codes in Developer Tools → Events.
+  keycodes if you've customised the knob in the Anticater app, and set the
+  long-press threshold. Every raw keypress is also fired on the bus as
+  `ble_knob_event` (with `keycode`), so you can discover codes in
+  Developer Tools → Events.
 
 ## Requirements
 
@@ -84,10 +94,11 @@ directly from the Home Assistant UI, and exposes rotation and press as
 ## Device triggers
 
 In the automation editor you can also pick the knob under **Device** and
-choose one of its built-in triggers — *Knob rotated left*, *Knob rotated
-right* or *Knob pressed* — without touching YAML or the event entities.
-These fire from the same `ble_knob_event` and are scoped to the
-individual knob, so multiple knobs never cross-fire.
+choose one of its built-in triggers — *Knob rotated left/right*, *Knob
+pressed*, *Knob pressed and held*, or *Knob rotated left/right while
+pressed* — without touching YAML or the event entities. These fire from
+the same `ble_knob_event` and are scoped to the individual knob, so
+multiple knobs never cross-fire.
 
 ## Custom keycodes
 

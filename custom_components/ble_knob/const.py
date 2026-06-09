@@ -10,16 +10,29 @@ CONF_KEY_ROTATE_LEFT = "key_rotate_left"
 CONF_KEY_ROTATE_RIGHT = "key_rotate_right"
 CONF_KEY_PRESS = "key_press"
 
+# Options: long-press detection
+CONF_LONG_PRESS_MS = "long_press_ms"
+
 # VK01 factory defaults (Linux evdev keycodes)
 DEFAULT_KEY_ROTATE_LEFT = 114   # KEY_VOLUMEDOWN
 DEFAULT_KEY_ROTATE_RIGHT = 115  # KEY_VOLUMEUP
 DEFAULT_KEY_PRESS = 113         # KEY_MUTE
 
+# How long (ms) the button must be held to count as a long press rather
+# than a tap. Also the window during which turning the knob counts as a
+# "while pressed" gesture instead of a plain rotation.
+DEFAULT_LONG_PRESS_MS = 500
+
 EVENT_TYPE = "ble_knob_event"
 
+# Base actions, resolved straight from a keycode.
 ACTION_ROTATE_LEFT = "rotate_left"
 ACTION_ROTATE_RIGHT = "rotate_right"
 ACTION_PRESS = "press"
+# Derived actions, resolved from button-held state and press duration.
+ACTION_LONG_PRESS = "long_press"
+ACTION_ROTATE_LEFT_PRESSED = "rotate_left_pressed"
+ACTION_ROTATE_RIGHT_PRESSED = "rotate_right_pressed"
 
 SIGNAL_KNOB_EVENT = "ble_knob_event_{entry_id}"
 SIGNAL_AVAILABILITY = "ble_knob_availability_{entry_id}"

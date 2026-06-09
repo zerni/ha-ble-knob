@@ -27,6 +27,3 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          # description and topics are repository settings; remove these
-          # ignores once they are set in the GitHub repo settings.
-          ignore: description topics

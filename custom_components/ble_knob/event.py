@@ -10,9 +10,12 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    ACTION_LONG_PRESS,
     ACTION_PRESS,
     ACTION_ROTATE_LEFT,
+    ACTION_ROTATE_LEFT_PRESSED,
     ACTION_ROTATE_RIGHT,
+    ACTION_ROTATE_RIGHT_PRESSED,
     CONF_MAC,
     CONF_NAME,
     DOMAIN,
@@ -32,14 +35,19 @@ async def async_setup_entry(
                 entry,
                 key="rotation",
                 name="Rotation",
-                event_types=[ACTION_ROTATE_LEFT, ACTION_ROTATE_RIGHT],
+                event_types=[
+                    ACTION_ROTATE_LEFT,
+                    ACTION_ROTATE_RIGHT,
+                    ACTION_ROTATE_LEFT_PRESSED,
+                    ACTION_ROTATE_RIGHT_PRESSED,
+                ],
                 icon="mdi:rotate-360",
             ),
             KnobEventEntity(
                 entry,
                 key="button",
                 name="Button",
-                event_types=[ACTION_PRESS],
+                event_types=[ACTION_PRESS, ACTION_LONG_PRESS],
                 icon="mdi:gesture-tap-button",
             ),
         ]

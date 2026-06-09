@@ -1,19 +1,19 @@
 {
   "domain": "ble_knob",
   "name": "BLE Knob (Anticater VK01)",
-  "version": "0.1.0",
-  "documentation": "https://github.com/your-user/ble-knob",
-  "issue_tracker": "https://github.com/your-user/ble-knob/issues",
-  "codeowners": ["@your-user"],
-  "config_flow": true,
-  "dependencies": ["bluetooth_adapters"],
-  "requirements": ["evdev>=1.6.1"],
   "bluetooth": [
     {
-      "service_uuid": "00001812-0000-1000-8000-00805f9b34fb",
-      "connectable": true
+      "connectable": true,
+      "service_uuid": "00001812-0000-1000-8000-00805f9b34fb"
     }
   ],
+  "codeowners": ["@zerni"],
+  "config_flow": true,
+  "dependencies": ["bluetooth_adapters"],
+  "documentation": "https://github.com/zerni/ha-ble-knob",
+  "integration_type": "device",
   "iot_class": "local_push",
-  "integration_type": "device"
+  "issue_tracker": "https://github.com/zerni/ha-ble-knob/issues",
+  "requirements": ["evdev>=1.6.1"],
+  "version": "0.1.0"
 }

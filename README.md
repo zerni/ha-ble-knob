@@ -101,3 +101,11 @@ app (e.g. F13–F24, evdev codes 183–194) so their events never clash.
   need the adapter path made configurable in `bluez.py`.
 - Pairing requires the knob to be visible to BlueZ at that moment — wake
   it just before confirming the flow.
+
+## License
+
+Released under the **GNU General Public License v3.0** — see
+[`LICENSE`](LICENSE). You're free to use, study, share and modify this
+integration, but any distributed copy or derivative must also be released
+under the GPL-3.0 and keep this notice. It cannot be folded into closed-
+source software.

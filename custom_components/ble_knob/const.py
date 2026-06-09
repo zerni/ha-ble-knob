@@ -9,6 +9,10 @@ CONF_NAME = "name"
 CONF_KEY_ROTATE_LEFT = "key_rotate_left"
 CONF_KEY_ROTATE_RIGHT = "key_rotate_right"
 CONF_KEY_PRESS = "key_press"
+# The VK01 has a hardware "press and turn" layer that emits its own
+# keycodes rather than the button + rotation codes together.
+CONF_KEY_ROTATE_LEFT_PRESSED = "key_rotate_left_pressed"
+CONF_KEY_ROTATE_RIGHT_PRESSED = "key_rotate_right_pressed"
 
 # Options: long-press detection
 CONF_LONG_PRESS_MS = "long_press_ms"
@@ -17,6 +21,9 @@ CONF_LONG_PRESS_MS = "long_press_ms"
 DEFAULT_KEY_ROTATE_LEFT = 114   # KEY_VOLUMEDOWN
 DEFAULT_KEY_ROTATE_RIGHT = 115  # KEY_VOLUMEUP
 DEFAULT_KEY_PRESS = 113         # KEY_MUTE
+# Press-and-turn layer (the knob sends these instead of 113 + 114/115).
+DEFAULT_KEY_ROTATE_LEFT_PRESSED = 224   # KEY_BRIGHTNESSDOWN
+DEFAULT_KEY_ROTATE_RIGHT_PRESSED = 225  # KEY_BRIGHTNESSUP
 
 # How long (ms) the button must be held to count as a long press rather
 # than a tap. Also the window during which turning the knob counts as a

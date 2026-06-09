@@ -22,13 +22,17 @@ from .const import (
     ACTION_ROTATE_RIGHT_PRESSED,
     CONF_KEY_PRESS,
     CONF_KEY_ROTATE_LEFT,
+    CONF_KEY_ROTATE_LEFT_PRESSED,
     CONF_KEY_ROTATE_RIGHT,
+    CONF_KEY_ROTATE_RIGHT_PRESSED,
     CONF_LONG_PRESS_MS,
     CONF_MAC,
     CONF_NAME,
     DEFAULT_KEY_PRESS,
     DEFAULT_KEY_ROTATE_LEFT,
+    DEFAULT_KEY_ROTATE_LEFT_PRESSED,
     DEFAULT_KEY_ROTATE_RIGHT,
+    DEFAULT_KEY_ROTATE_RIGHT_PRESSED,
     DEFAULT_LONG_PRESS_MS,
     DOMAIN,
     EVENT_TYPE,
@@ -145,7 +149,18 @@ class KnobListener:
         if value != 1:  # rotation/unknown: key_down only
             return
 
-        if keycode == opts.get(CONF_KEY_ROTATE_LEFT, DEFAULT_KEY_ROTATE_LEFT):
+        # The knob's hardware press-and-turn layer sends dedicated
+        # keycodes; check those first. Otherwise a plain rotation becomes
+        # a "pressed" variant only if our own button-held state says so.
+        if keycode == opts.get(
+            CONF_KEY_ROTATE_LEFT_PRESSED, DEFAULT_KEY_ROTATE_LEFT_PRESSED
+        ):
+            action = ACTION_ROTATE_LEFT_PRESSED
+        elif keycode == opts.get(
+            CONF_KEY_ROTATE_RIGHT_PRESSED, DEFAULT_KEY_ROTATE_RIGHT_PRESSED
+        ):
+            action = ACTION_ROTATE_RIGHT_PRESSED
+        elif keycode == opts.get(CONF_KEY_ROTATE_LEFT, DEFAULT_KEY_ROTATE_LEFT):
             action = (
                 ACTION_ROTATE_LEFT_PRESSED if self._button_held else ACTION_ROTATE_LEFT
             )

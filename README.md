@@ -25,15 +25,17 @@ directly from the Home Assistant UI, and exposes rotation and press as
   recognises **press-and-hold** (`long_press`) and **turn-while-holding**
   the button (`rotate_left_pressed` / `rotate_right_pressed`), so one knob
   drives two layers — e.g. turn to dim, hold-and-turn to set colour
-  temperature. The button is classified on release: a quick tap is a
-  `press`, a hold past the threshold is a `long_press`, and if you turn
-  while holding, the release is treated as part of that combo (no stray
-  `press` fires). The hold threshold is configurable (default 500 ms).
-- **Key mapping**: integration options let you remap the three evdev
-  keycodes if you've customised the knob in the Anticater app, and set the
-  long-press threshold. Every raw keypress is also fired on the bus as
-  `ble_knob_event` (with `keycode`), so you can discover codes in
-  Developer Tools → Events.
+  temperature. The VK01 has a hardware press-and-turn layer that emits
+  dedicated keycodes (224/225 by default) which are mapped straight to the
+  pressed-rotation actions; for knobs that instead keep the button held,
+  the same actions are derived in software from the button-held state. A
+  tap is classified on release as `press`, a hold past the threshold as
+  `long_press`.
+- **Key mapping**: integration options let you remap every evdev keycode
+  — plain rotate left/right, press, and the press-and-turn pair — plus the
+  long-press threshold (default 500 ms). Every raw keypress is also fired
+  on the bus as `ble_knob_event` (with `keycode`), so you can discover
+  codes in Developer Tools → Events.
 
 ## Requirements
 
@@ -106,7 +108,9 @@ If you've remapped the knob in the Anticater desktop app, open the
 integration's **Configure** dialog and enter the Linux evdev keycodes for
 each action. To find them, listen to `ble_knob_event` in Developer Tools →
 Events and operate the knob. Factory defaults: 115 (volume up) = rotate
-right, 114 (volume down) = rotate left, 113 (mute) = press.
+right, 114 (volume down) = rotate left, 113 (mute) = press, and the
+press-and-turn layer 225 (brightness up) = rotate right while pressed,
+224 (brightness down) = rotate left while pressed.
 
 If you run several knobs, give each one distinct keycodes in the Anticater
 app (e.g. F13–F24, evdev codes 183–194) so their events never clash.

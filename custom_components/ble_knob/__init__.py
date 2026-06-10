@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
 
 import evdev
 
@@ -14,7 +13,6 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .bluez import remove_device
 from .const import (
-    ACTION_LONG_PRESS,
     ACTION_PRESS,
     ACTION_ROTATE_LEFT,
     ACTION_ROTATE_LEFT_PRESSED,
@@ -25,7 +23,6 @@ from .const import (
     CONF_KEY_ROTATE_LEFT_PRESSED,
     CONF_KEY_ROTATE_RIGHT,
     CONF_KEY_ROTATE_RIGHT_PRESSED,
-    CONF_LONG_PRESS_MS,
     CONF_MAC,
     CONF_NAME,
     DEFAULT_KEY_PRESS,
@@ -33,7 +30,6 @@ from .const import (
     DEFAULT_KEY_ROTATE_LEFT_PRESSED,
     DEFAULT_KEY_ROTATE_RIGHT,
     DEFAULT_KEY_ROTATE_RIGHT_PRESSED,
-    DEFAULT_LONG_PRESS_MS,
     DOMAIN,
     EVENT_TYPE,
     SIGNAL_AVAILABILITY,
@@ -69,11 +65,10 @@ class KnobListener:
         self.mac: str = entry.data[CONF_MAC]
         self._task: asyncio.Task | None = None
         self._stopping = False
-        # Gesture state. `_button_down_at` is the monotonic time the
-        # button went down (None when released); `_combo_consumed` marks
-        # that a turn happened during the current hold, so the eventual
-        # release must not also fire a plain press/long press.
-        self._button_down_at: float | None = None
+        # Gesture state. `_button_down` tracks whether the button is
+        # currently held; `_combo_consumed` marks that a turn happened
+        # during the current hold, so the release fires no plain press.
+        self._button_down = False
         self._combo_consumed = False
 
     @property
@@ -82,7 +77,7 @@ class KnobListener:
 
     @property
     def _button_held(self) -> bool:
-        return self._button_down_at is not None
+        return self._button_down
 
     def start(self) -> None:
         self._task = self.entry.async_create_background_task(
@@ -113,7 +108,7 @@ class KnobListener:
 
             _LOGGER.info("Knob %s attached at %s", self.mac, dev.path)
             # Drop any half-finished gesture from before a sleep/reconnect.
-            self._button_down_at = None
+            self._button_down = False
             self._combo_consumed = False
             self._set_available(True)
             try:
@@ -136,9 +131,9 @@ class KnobListener:
         """Route a raw evdev key event into a knob gesture.
 
         The button is tracked across its full down/up lifecycle so we can
-        tell a tap from a hold and notice a turn made while it is held.
-        Rotations (and any unmapped key) fire on key_down only, matching
-        the down/up pairs the knob emits per detent.
+        notice a turn made while it is held. Rotations (and any unmapped
+        key) fire on key_down only, matching the down/up pairs the knob
+        emits per detent.
         """
         opts = self.entry.options
 
@@ -182,27 +177,23 @@ class KnobListener:
         self._emit(action, keycode)
 
     def _handle_button(self, value: int) -> None:
-        """Classify the button on release: tap, long press, or combo."""
+        """Fire a press on release, unless the hold was a turn combo."""
         if value == 1:  # down
-            self._button_down_at = time.monotonic()
+            self._button_down = True
             self._combo_consumed = False
             return
         if value != 0:  # autorepeat (2): still held, nothing to decide
             return
 
         # Released.
-        pressed_at = self._button_down_at
-        self._button_down_at = None
-        if pressed_at is None:
+        was_down = self._button_down
+        self._button_down = False
+        if not was_down:
             return  # release with no matching press (e.g. across reconnect)
         if self._combo_consumed:
             self._combo_consumed = False
             return  # already expressed as a rotate-while-pressed gesture
-
-        held_ms = (time.monotonic() - pressed_at) * 1000
-        threshold = self.entry.options.get(CONF_LONG_PRESS_MS, DEFAULT_LONG_PRESS_MS)
-        action = ACTION_LONG_PRESS if held_ms >= threshold else ACTION_PRESS
-        self._emit(action, self._press_keycode)
+        self._emit(ACTION_PRESS, self._press_keycode)
 
     def _emit(self, action: str | None, keycode: int) -> None:
         payload = {

@@ -20,21 +20,20 @@ directly from the Home Assistant UI, and exposes rotation and press as
 - **Entities**: each knob gets a device with two event entities:
   - `event.<knob>_rotation` (event types `rotate_left`, `rotate_right`,
     `rotate_left_pressed`, `rotate_right_pressed`)
-  - `event.<knob>_button` (event types `press`, `long_press`)
+  - `event.<knob>_button` (event type `press`)
 - **Gestures**: as well as a plain turn and tap, the integration
-  recognises **press-and-hold** (`long_press`) and **turn-while-holding**
-  the button (`rotate_left_pressed` / `rotate_right_pressed`), so one knob
-  drives two layers — e.g. turn to dim, hold-and-turn to set colour
-  temperature. The VK01 has a hardware press-and-turn layer that emits
-  dedicated keycodes (224/225 by default) which are mapped straight to the
-  pressed-rotation actions; for knobs that instead keep the button held,
-  the same actions are derived in software from the button-held state. A
-  tap is classified on release as `press`, a hold past the threshold as
-  `long_press`.
+  recognises **turn-while-holding** the button (`rotate_left_pressed` /
+  `rotate_right_pressed`), so one knob drives two layers — e.g. turn to
+  dim, hold-and-turn to set colour temperature. The VK01 has a hardware
+  press-and-turn layer that emits dedicated keycodes (224/225 by default)
+  which are mapped straight to the pressed-rotation actions; for knobs
+  that instead keep the button held, the same actions are derived in
+  software from the button-held state. The button fires a single `press`
+  on release.
 - **Key mapping**: integration options let you remap every evdev keycode
-  — plain rotate left/right, press, and the press-and-turn pair — plus the
-  long-press threshold (default 500 ms). Every raw keypress is also fired
-  on the bus as `ble_knob_event` (with `keycode`), so you can discover
+  — plain rotate left/right, press, and the press-and-turn pair. Every raw
+  keypress is also fired on the bus as `ble_knob_event` (with `keycode`),
+  so you can discover
   codes in Developer Tools → Events.
 
 ## Requirements
@@ -125,8 +124,7 @@ This single automation uses all three layers of the knob on one light:
 ```
 
 Replace `event.vk01_rotation` / `event.vk01_button` with your knob's
-entity IDs and `light.living_room` with your light. A `long_press` event
-type is also available on the button entity if you want a fourth gesture.
+entity IDs and `light.living_room` with your light.
 
 ## Device triggers
 

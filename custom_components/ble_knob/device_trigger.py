@@ -23,7 +23,6 @@ from homeassistant.helpers.trigger import TriggerActionType, TriggerInfo
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
-    ACTION_LONG_PRESS,
     ACTION_PRESS,
     ACTION_ROTATE_LEFT,
     ACTION_ROTATE_LEFT_PRESSED,
@@ -37,7 +36,6 @@ TRIGGER_TYPES = {
     ACTION_ROTATE_LEFT,
     ACTION_ROTATE_RIGHT,
     ACTION_PRESS,
-    ACTION_LONG_PRESS,
     ACTION_ROTATE_LEFT_PRESSED,
     ACTION_ROTATE_RIGHT_PRESSED,
 }

@@ -61,12 +61,13 @@ HA Bluetooth integration sees HID advertisement (service UUID 1812)
 1. **Rotation is key_down only** (`event.value == 1`). Knob detents
    arrive as down+up pairs; reacting to both would double every event.
    The **button**, by contrast, is tracked across its full down/up
-   lifecycle (`_handle_button`) so the gesture layer can tell a tap from
-   a hold and notice a turn made while it is held. The button is
-   classified on **release**: tap → `press`, held past
-   `long_press_ms` → `long_press`, and a turn during the hold marks
+   lifecycle (`_handle_button`) so the gesture layer can notice a turn
+   made while it is held. The button fires a single `press` on
+   **release**, unless a turn happened during the hold — that marks
    `_combo_consumed` so the release fires nothing (the turn already
-   emitted `rotate_*_pressed`).
+   emitted `rotate_*_pressed`). There is deliberately **no `long_press`**:
+   a press-and-turn requires holding the button, and a duration-based
+   long press would misfire on that hold (removed in 0.6.0).
    The `rotate_*_pressed` actions have **two sources**: the VK01's
    hardware press-and-turn layer sends dedicated keycodes (224/225,
    configurable) that map straight to them; and as a fallback, a plain
@@ -165,10 +166,11 @@ Manual smoke test on real hardware (the actual acceptance test):
 1. GitHub Actions: hassfest + HACS validation workflows (see
    `.github/workflows/validate.yml` if present). — **done**
 2. Test suite per the Testing section.
-3. ~~Long-press~~ — **done**: hold duration is measured in
-   `_handle_button`, exposing `long_press` plus the `rotate_*_pressed`
-   hold-and-turn gestures. A fire-at-threshold timer (so a long press
-   registers without waiting for release) is a possible refinement.
+3. ~~Long-press~~ — tried and **removed** in 0.6.0: holding the button
+   to do a press-and-turn made a duration-based long press misfire.
+   `_handle_button` keeps only the hold tracking that powers the
+   `rotate_*_pressed` combo. Revisit only if a knob is found whose press
+   and press-and-turn don't share the button hold.
 4. Velocity: count detents per rolling window and attach a `speed`
    attribute to rotation events, enabling acceleration-style dimming.
 5. Configurable Bluetooth adapter (replace hardcoded `hci0`).

@@ -10,7 +10,6 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    ACTION_LONG_PRESS,
     ACTION_PRESS,
     ACTION_ROTATE_LEFT,
     ACTION_ROTATE_LEFT_PRESSED,
@@ -47,7 +46,7 @@ async def async_setup_entry(
                 entry,
                 key="button",
                 name="Button",
-                event_types=[ACTION_PRESS, ACTION_LONG_PRESS],
+                event_types=[ACTION_PRESS],
                 icon="mdi:gesture-tap-button",
             ),
         ]
